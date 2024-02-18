@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model InventoryAgent {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  password   String
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model DeliveryAgent {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  password   String
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deliveries Delivery[] // One-to-many relation with Delivery
+}
+
+model Warehouse {
+  id          Int         @id @default(autoincrement())
+  name        String
+  location    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  inventories Inventory[] // One-to-many relation with Inventory
+}
+
+model Inventory {
+  id           Int              @id @default(autoincrement())
+  name         String           
+  warehouse_id Int              
+  warehouse    Warehouse        @relation(fields: [warehouse_id], references: [id]) // Many-to-one relation with Warehouse
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  items        InventoryItems[] // One-to-many relation with InventoryItems
+}
+
+model InventoryItems {
+  id           Int       @id @default(autoincrement())
+  inventory_id Int
+  inventory    Inventory @relation(fields: [inventory_id], references: [id]) // Many-to-one relation with Inventory
+  product_id   Int
+  quantity     Int
+  product      Products  @relation(fields: [product_id], references: [id]) // Many-to-one relation with Products
+}
+
+model Products {
+  id                 Int              @id @default(autoincrement())
+  category_id        Int
+  category           Category         @relation(fields: [category_id], references: [id]) // Many-to-one relation with Category
+  name               String
+  description        String?
+  perishable         Boolean
+  expiry_date        DateTime?
+  damaged            Boolean
+  damage_description String?
+  InventoryItems     InventoryItems[]
+  Delivery           Delivery[]
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  products  Products[] // One-to-many relation with Products
+}
+
+model Delivery {
+  id               Int             @id @default(autoincrement())
+  agent_id         Int
+  agent            DeliveryAgent   @relation(fields: [agent_id], references: [id]) // Many-to-one relation with DeliveryAgent
+  product_id       Int
+  product          Products        @relation(fields: [product_id], references: [id]) // Many-to-one relation with Products
+  delivery_date    DateTime
+  priority         String
+  customer_name    String
+  customer_phno    String
+  delivery_status  String
+}
